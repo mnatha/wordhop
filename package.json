@@ -1,6 +1,6 @@
 {
   "name": "wordhop",
-  "version": "0.0.2",
+  "version": "1.0.3",
   "description": "A toolkit for Chatbot Optimization",
   "main": "src/wordhop.js",
   "dependencies": {
@@ -20,6 +20,6 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "git://github.com/username/repository.git"
+    "url": "git://github.com/mnatha/wordhop"
   }
 }
