@@ -100,7 +100,7 @@ Now find where in your code your bot processes incoming messages it does not und
 wordhop.logUnkownIntent(messageObject);
 ```
 
-Go back to Slack and wait for inishgts to be delivered. That's it!
+Go back to Slack and wait for insights to be delivered. That's it!
 
 ## 2.0 Connect a Slack app to Wordhop
 
@@ -183,7 +183,7 @@ Find where in your code your bot processes incoming messages it does not underst
 wordhop.logUnkownIntent(messageObject);
 ```
 
-Go back to Slack and wait for inishgts to be delivered. That's it!
+Go back to Slack and wait for insights to be delivered. That's it!
 
 =======================
 That's all for now. Questions?  Feedback?  
