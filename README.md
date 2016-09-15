@@ -60,7 +60,7 @@ wordhopbot.controller.on('message_delivered',function(bot,message) {
 });
 ```
 
-Go back to Slack and wait for inishgts to be delivered. That's it!
+Go back to Slack and wait for insights to be delivered. That's it!
 
 ### 1.2 For a Messenger app NOT built with Botkit
 
