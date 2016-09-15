@@ -88,7 +88,7 @@ var data = {
      } 
 }; 
 request(data, function(error, response, body) { 
-     wordhop.hopOut(data, response.body); 
+     wordhop.hopOut(response.body); 
 });
 ```
 
