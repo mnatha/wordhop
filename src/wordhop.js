@@ -42,14 +42,14 @@ function WordhopBot(apiKey, serverRoot, controller, clientkey, debug) {
 
     that.hopIn = function(message) {
 
-        
+               
 
 
         if ((message.type === 'message' || message.type == null) && message.channel && message.transcript == null && message.subtype == null && message.user != 'USLACKBOT' && message.reply_to == null) {
                 
 
             console.log("hopIn");
-
+         
 
             if (message.timestamp == null && message.ts == null) {
                 message.timestamp = Date.now();
@@ -239,14 +239,20 @@ function WordhopBot(apiKey, serverRoot, controller, clientkey, debug) {
 
     });
 
+    socket.on('engage users', function (msg) {
+        var event = 'engage users';
+        if (debug) {
+            console.log('handler:', event);
+        }
+        
+        that.trigger(event, [msg]);
+    });
+
     that.checkForPaused = function(message, cb) {
 
         if ((message.type === 'message' || message.type == null) && message.channel && message.transcript == null && message.subtype == null && message.user != 'USLACKBOT') {
         
 
-
-
-            var channel_id = message.channel;
             var data = {
                 method: 'POST',
                 url: that.serverRoot + '/is_channel_paused',
@@ -256,48 +262,39 @@ function WordhopBot(apiKey, serverRoot, controller, clientkey, debug) {
                     'type': 'connect'
                 },
 
-                json: {
-                    'channel_id':channel_id,
-                    'clientkey': that.clientkey
-                    
-                }
+                json: message
 
             };
 
 
             rp(data).then(function (parsedBody) {
 
-                if (parsedBody.channel) {
-                    if (parsedBody.channel.paused) {
-                        message.paused = true;
-                    }
-                    cb(null, parsedBody.channel.paused);
-
-                } else {
-                    cb(null, false);
-
-                }
+                cb(null, parsedBody);
 
                 
                 // Process html like you would with jQuery... 
             })
             .catch(function (err) {
                 
-                cb(err, false);
+                cb(err, message);
             });
         } else {
-            cb(null, false);
+            cb(null, message);
         }
     }
 
 
     that.getSocketId = function () {
+
         return that.socketId;
     }
 
     that.setSocketId = function(socketId) {
+        console.log("set socket : " + socketId);
         that.socketId = socketId;
     }
+
+
 
     return that;
 }
@@ -352,42 +349,20 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, token, d
 
     that.receive = function(bot, message, next) {
 
-        var callback = function() {
-            that.checkForPaused(message, function(error, paused) {
-                if (paused) {
-                    message.paused = paused;
-                }
-                that.hopIn(message);
-
-                next();
-            });
+        if (token != '') {
+            message.token = token;
         }
 
-        if (token != "") {
+        that.checkForPaused(message, function(error, msg) { 
 
-            var data = {
-                method: 'GET',
-                url: 'https://graph.facebook.com/v2.7/' + message.user + '?access_token=' + token,
-                headers: {
-                    'content-type': 'application/json'
-                }
-            };
+            if (msg) {
+                message.paused = msg.paused;
+                message.user_profile = msg.user_profile;
+            }
 
-            rp(data).then(function (response) {
-                message.user_profile = JSON.parse(response);
-                callback();
-                
-            })
-            .catch(function (err) {
-                callback();
-
-            });
-
-        } else {
-            callback();
-
-        }
-
+            that.hopIn(message);
+            next();
+        });
 
         
     };
@@ -407,9 +382,10 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, token, d
 
     that.getSocketId = wordhopbot.getSocketId;
 
+
 }
 
-function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, token, debug) {
+function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
     var that = this;
     var messageId = 0;
 
@@ -475,52 +451,19 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, token, debu
 
         if (message.callback_id != "resume_buttons" && message.callback_id != "pause_buttons") {
 
-            var callback = function() {
-                that.checkForPaused(message, function(error, paused) {
-                    if (paused) {
-                        message.paused = paused;
-                    }
-                    that.hopIn(message);
+           
 
-                    next();
-                });
-            }
+            that.checkForPaused(message, function(error, msg) { 
 
+                if (msg) {
+                    message.paused = msg.paused;
+                    message.user_profile = msg.user_profile;
+                }
 
-            if (token != "") {
-                var data = {
-                    method: 'GET',
-                    url: 'https://slack.com/api/users.info?token=' + token + '&user=' + message.user,
-                    headers: {
-                        'content-type': 'application/json'
-                    }
-                };
-
-                rp(data).then(function (response) {
-
-                    var obj = JSON.parse(response);
-
-                    if (obj.ok) {
-                        message.user_profile = obj.user;
-                    }
-
-                    callback();
-                    
-                })
-                .catch(function (err) {
-                   
-                    callback();
-
-                });
-
-            } else {
-                callback();
-
-            }
-        }
-
-        
-
+                that.hopIn(message);
+                next();
+            });
+        };
     };
 
 
@@ -554,6 +497,7 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, token, debu
     that.checkForPaused = function(message, cb) {
         wordhopbot.checkForPaused(message, cb);
     }
+
 
 
 }
@@ -590,7 +534,7 @@ module.exports = function(apiKey, clientkey, config) {
 
 
     if (platform == 'slack') {
-        return new WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, token, debug);
+        return new WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug);
     } else if (platform == 'facebook') {
         return new WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, token, debug);
     } else {
