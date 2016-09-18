@@ -78,19 +78,21 @@ app.post('/facebook/receive/', function(req, res) {
 
 Each time you send a message, make sure to log both the request and the response. Here is an example:
 ```javascript
+var message = { 
+                 recipient: {id: sender}, 
+                 message: { 
+                     text: 'You are right when you say: ' + text 
+                 } 
+              }
 var data = { 
-     url: 'https://graph.facebook.com/v2.6/me/messages', 
-     qs: {access_token: process.env.FACEBOOK_PAGE_TOKEN, 
-     method: 'POST', 
-     json: { 
-         recipient: {id: sender}, 
-         message: { 
-             text: 'You are right when you say: ' + text 
-         } 
-     } 
+             url: 'https://graph.facebook.com/v2.6/me/messages', 
+             qs: {access_token: process.env.FACEBOOK_PAGE_TOKEN, 
+             method: 'POST', 
+             json: message
+           } 
 }; 
 request(data, function(error, response, body) { 
-     wordhop.hopOut(response.body); 
+     wordhop.hopOut(message); 
 });
 ```
 
