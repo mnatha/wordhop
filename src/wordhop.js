@@ -24,7 +24,7 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
             && message.channel 
             && message.user != 'USLACKBOT' 
             && message.transcript == null 
-            && message.subtype == null 
+            && (message.subtype == null || message.subtype === "file_share")
             && message.reply_to == null 
             && message.is_echo == null) {
             return true;
@@ -76,28 +76,29 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
     that.hopIn = function(message, cb) {
 
-
         var track = function(msg) {
 
-            console.log("hopIn");
-            
-            var data = {
-                method: 'POST',
-                url: that.serverRoot + '/track',
-                headers: {
-                    'content-type': 'application/json',
-                    'apikey': that.apiKey,
-                    'platform': that.platform,
-                    'clientkey': that.clientkey,
-                    'socket_id': that.getSocketId(),
-                    'type':'in'
-                },
-                json: {
-                    message: msg
-                }
-            };
+            if (that.checkIfMessage(message)) {
 
-            rp(data);
+                console.log("hopIn");
+                var data = {
+                    method: 'POST',
+                    url: that.serverRoot + '/track',
+                    headers: {
+                        'content-type': 'application/json',
+                        'apikey': that.apiKey,
+                        'platform': that.platform,
+                        'clientkey': that.clientkey,
+                        'socket_id': that.getSocketId(),
+                        'type':'in'
+                    },
+                    json: {
+                        message: msg
+                    }
+                };
+
+                rp(data);
+            }
             
         }
 
@@ -119,10 +120,9 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
     that.hopOut = function(message) {
 
+
         that.structureMessage(message, function(res) {
-
             console.log("hopOut");
-
             var data = {
                 method: 'POST',
                 url: that.serverRoot + '/track',
@@ -266,7 +266,11 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
     socket.on('chat response', function (msg) {
         var event = 'chat response';
-        that.trigger(event, [msg.sourceChannel.toUpperCase(), msg.text, msg.team]);
+        var message = {text:msg.text};
+        if (msg.attachments) {
+            message.attachments = msg.attachments;
+        }
+        that.trigger(event, [msg.sourceChannel.toUpperCase(), message, msg.team]);
 
     });
 
@@ -284,6 +288,11 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
     socket.on('engage users', function (msg) {
         var event = 'engage users';
+        that.trigger(event, [msg]);
+    });
+
+    socket.on('inactive channels message', function (msg) {
+        var event = 'inactive channels message';
         that.trigger(event, [msg]);
     });
 
@@ -317,7 +326,6 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
                 for (var m = 0; m < obj.entry[e].messaging.length; m++) {
                     var facebook_message = obj.entry[e].messaging[m];
                     if (facebook_message.message) {
-
                         var message = {
                             text: facebook_message.message.text,
                             user: facebook_message.sender.id,
@@ -364,7 +372,6 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
     };
 
     that.receive = function(bot, message, next) {
-       
         that.hopIn(message, function(msg) {
             next();
         });
