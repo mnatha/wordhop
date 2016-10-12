@@ -55,26 +55,26 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
         console.log("logUnkownIntent");
 
-        that.structureMessage(message, function(res) {
-            var data = {
-                method: 'POST',
-                url: that.serverRoot + '/track',
-                headers: {
-                    'content-type': 'application/json',
-                    'apikey': that.apiKey,
-                    'platform': that.platform,
-                    'clientkey': that.clientkey,
-                    'failure': true,
-                    'type':'unknown'
-                },
+        var data = {
+            method: 'POST',
+            url: that.serverRoot + '/track',
+            headers: {
+                'content-type': 'application/json',
+                'apikey': that.apiKey,
+                'platform': that.platform,
+                'clientkey': that.clientkey,
+                'failure': true,
+                'type':'unknown'
+            },
 
-                json: {
-                    message: res
-                }
-            };
-            rp(data);
+            json: {
+                message: message
+            }
+        };
+        rp(data);
 
-        });
+
+
     }
 
 
@@ -82,7 +82,7 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
 
         var track = function(msg) {
 
-            if (that.checkIfMessage(message)) {
+            that.structureMessage(message, function(res) {
                 console.log("hopIn");
                 var data = {
                     method: 'POST',
@@ -101,7 +101,7 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
                 };
 
                 rp(data);
-            }
+            });
             
         }
 
@@ -122,7 +122,6 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
     }
 
     that.hopOut = function(message) {
-
 
         that.structureMessage(message, function(res) {
             console.log("hopOut");
