@@ -19,14 +19,18 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
     }
 
     that.checkIfMessage = function(message) {
-        
+        if (message.text == null) {
+            message.text = "";
+        }
         if ((message.type === 'message' || message.type == null || message.page) 
             && message.channel 
             && message.user != 'USLACKBOT' 
             && message.transcript == null 
             && (message.subtype == null || message.subtype === "file_share")
             && message.reply_to == null 
-            && message.is_echo == null) {
+            && message.is_echo == null
+            && message.bot_id == null
+            && (message.text.length > 1 || message.attachments != null || message.attachment != null)) {
             return true;
         };
         return false;
@@ -79,7 +83,6 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
         var track = function(msg) {
 
             if (that.checkIfMessage(message)) {
-
                 console.log("hopIn");
                 var data = {
                     method: 'POST',
@@ -373,6 +376,7 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
 
     that.receive = function(bot, message, next) {
         that.hopIn(message, function(msg) {
+
             next();
         });
             
@@ -417,12 +421,12 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
     // botkit middleware endpoints
     that.receive = function(bot, message, next) {
 
-        if (message.callback_id != "resume_buttons" && message.callback_id != "pause_buttons") {
-
-            that.hopIn(message, function(msg) {
-                next();
-            });
-        };
+        
+        
+        that.hopIn(message, function(msg) {
+            next();
+        });
+        
     };
 
 
