@@ -418,15 +418,74 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
     };
 
     // botkit middleware endpoints
-    that.receive = function(bot, message, next) {
-
-        
-        
-        that.hopIn(message, function(msg) {
+    that.receive = function(bot, message, next) {  
+        var message = that.modifiedMessage(message, bot);
+        if (message.event) {
+            that.hopIn(message, function(msg) {
+                next();
+            }); 
+        } else {
             next();
-        });
-        
+        }
+             
     };
+
+    that.modifiedMessage = function(message, bot) {
+        if ('message' == message.type) {
+
+            var mentionSyntax = '<@' + bot.identity.id + '(\\|' + bot.identity.name.replace('.', '\\.') + ')?>';
+            var mention = new RegExp(mentionSyntax, 'i');
+            var direct_mention = new RegExp('^' + mentionSyntax, 'i');
+
+
+            if (message.text) {
+                message.text = message.text.trim();
+            }
+
+            if (message.channel.match(/^D/)) {
+                // this is a direct message
+                if (message.user == bot.identity.id) {
+                    return message;
+                }
+                if (!message.text) {
+                    // message without text is probably an edit
+                    return message;
+                }
+
+                // remove direct mention so the handler doesn't have to deal with it
+                message.text = message.text.replace(direct_mention, '')
+                .replace(/^\s+/, '').replace(/^\:\s+/, '').replace(/^\s+/, '');
+
+                message.event = 'direct_message';
+                return message;
+
+            } else {
+                if (message.user == bot.identity.id) {
+                    return message;
+                }
+                if (!message.text) {
+                    // message without text is probably an edit
+                    return message;
+                }
+
+                if (message.text.match(direct_mention)) {
+                    // this is a direct mention
+                    message.text = message.text.replace(direct_mention, '')
+                    .replace(/^\s+/, '').replace(/^\:\s+/, '').replace(/^\s+/, '');
+                    message.event = 'direct_mention';
+                    return message;
+                } else if (message.text.match(mention)) {
+                    //message.event = 'mention';
+                    return message;
+                } else {
+                    //message.event = 'ambient';
+                    return message;
+
+                }
+            }
+        }
+        return message;
+    }
 
 
     if (wordhopbot.controller) {
@@ -445,6 +504,7 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
     
 
 }
+
 
 module.exports = function(apiKey, clientkey, config) {
 
