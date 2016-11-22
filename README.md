@@ -1,16 +1,13 @@
-# [Wordhop](https://wordhop.io) - Conversational Analytics and Real-time Alerts For Bots
+# [Wordhop](https://www.wordhop.io) - A Customer Service Toolkit Built For Messaging
 
-Wordhop provides real-time insights for chatbots and helps companies improve communications through messaging.  
-With this developer toolkit you can monitor most bots built on Node.js, but with examples for those building bots on Messenger and Slack.
-The user experience is entirely through Slack.
+Wordhop is an intuitive customer service layer built on Slack with real-time synchronization to Chatbots across platforms. You can easily connect Chatbots you're building to a Slack team so you can scale customer service with bots while delighting your customers with humans.  Tag team with your Chatbot on conversations to improve engagement and monetization and access reports that help you find and fix problems fast in your conversational experience.
 
-IMPORTANT --> TO USE THIS NODE APP YOU WILL NEED:
-* A Slack Account: [Slack](https://api.slack.com)
-* The Wordhop Bot [Wordhop on Slack](https://developer.wordhop.io)
-* An API Key which you obtain from the Wordhop Bot once you add Wordhop to Slack.
+IMPORTANT --> YOU WILL NEED:
+* A Slack Team: [Slack](http://www.slack.com)
+* Wordhop For Slack [Wordhop on Slack](https://slack.com/oauth/authorize?scope=users:read,commands,chat:write:bot,channels:write,bot&client_id=23850726983.39760486257)
+* A Chatbot created with Node.js [Build a Chatbot](https://developer.wordhop.io/botbuilders.html)
 
-The information provided below is for reference purposes only.  The Wordhop bot will share these code snippets with you and walk you through the setup ;)
-
+When you add Wordhop to Slack, the Wordhop Chatbot will give you API keys for these supported Chatbot platforms:
 * [Facebook Messenger](https://developers.facebook.com)
 * [Slack](https://api.slack.com)
 * [Other platform? email us](mailto:support@wordhop.io)
@@ -42,25 +39,31 @@ controller.middleware.send.use(wordhop.send);
 Find where in your code your bot processes incoming messages it does not understand. You may have some outgoing fallback message there (i.e. "Oops I didn't get that!"). Within that block of code, include the following line of code to capture these conversational ‘dead-ends’:
 
 ```javascript
-wordhopbot.logUnkownIntent(message);
+wordhop.logUnkownIntent(message);
 ```
 
 Here is an example implementation using Botkit:
 
 ```javascript
 // reply to a direct mention 
-wordhopbot.controller.on('message_received',function(bot,message) { 
+wordhop.controller.on('message_received',function(bot,message) { 
     // reply to _message_ by using the _bot_ object 
-    wordhopbot.logUnkownIntent(message); 
+    wordhop.logUnkownIntent(message); 
 }); 
      
 // reply to a direct message 
-wordhopbot.controller.on('message_delivered',function(bot,message) { 
-    wordhopbot.logUnkownIntent(message); 
+wordhop.controller.on('message_delivered',function(bot,message) { 
+    wordhop.logUnkownIntent(message); 
 });
 ```
 
-Go back to Slack and wait for insights to be delivered. That's it!
+Wordhop triggers alerts to suggest when a human should take over for your Chatbot. You can also trigger your own custom alerts, such as when a customer explicitly requests live assistance. Create an intent, and then include the following line of code where your bot listens for this intent:
+
+```javascript
+wordhop.assistanceRequested(messageObject);
+```
+
+Go back to Slack and wait for alerts. That's it!
 
 ### 1.2 For a Messenger app NOT built with Botkit
 
@@ -102,7 +105,13 @@ Now find where in your code your bot processes incoming messages it does not und
 wordhop.logUnkownIntent(messageObject);
 ```
 
-Go back to Slack and wait for insights to be delivered. That's it!
+Wordhop triggers alerts to suggest when a human should take over for your Chatbot. You can also trigger your own custom alerts, such as when a customer explicitly requests live assistance. Create an intent, and then include the following line of code where your bot listens for this intent:
+
+```javascript
+wordhop.assistanceRequested(messageObject);
+```
+
+Go back to Slack and wait for alerts. That's it!
 
 ## 2.0 Connect a Slack app to Wordhop
 
@@ -131,23 +140,31 @@ controller.middleware.send.use(wordhop.send);
 Now find where in your code your bot processes incoming messages it does not understand. You may have some outgoing fallback message there (i.e. "Oops! I didn't get that"). Within that block of code, include the following line of code to capture these conversational "Dead-ends"
 
 ```javascript
-wordhopbot.logUnkownIntent(message);
+wordhop.logUnkownIntent(message);
 ```
 
 Here is an example implementation using Botkit for Slack:
 
 ```javascript
 // reply to a direct mention 
-wordhopbot.controller.on('direct_mention',function(bot,message) { 
+wordhop.controller.on('direct_mention',function(bot,message) { 
     // reply to _message_ by using the _bot_ object 
-    wordhopbot.logUnkownIntent(message); 
+    wordhop.logUnkownIntent(message); 
 }); 
      
 // reply to a direct message 
-wordhopbot.controller.on('direct_message',function(bot,message) { 
-    wordhopbot.logUnkownIntent(message); 
+wordhop.controller.on('direct_message',function(bot,message) { 
+    wordhop.logUnkownIntent(message); 
 });
 ```
+
+Wordhop triggers alerts to suggest when a human should take over for your Chatbot. You can also trigger your own custom alerts, such as when a customer explicitly requests live assistance. Create an intent, and then include the following line of code where your bot listens for this intent:
+
+```javascript
+wordhop.assistanceRequested(message);
+```
+
+Go back to Slack and wait for alerts. That's it!
 
 ### 2.2 For a Slack app not built with Botkit
 
@@ -185,10 +202,15 @@ Find where in your code your bot processes incoming messages it does not underst
 wordhop.logUnkownIntent(messageObject);
 ```
 
-Go back to Slack and wait for insights to be delivered. That's it!
+Wordhop triggers alerts to suggest when a human should take over for your Chatbot. You can also trigger your own custom alerts, such as when a customer explicitly requests live assistance. Create an intent, and then include the following line of code where your bot listens for this intent:
+
+```javascript
+wordhop.assistanceRequested(messageObject);
+```
+
+Go back to Slack and wait for alerts. That's it!
 
 =======================
 That's all for now. Questions?  Feedback?  
 * [Email Support](mailto://support.wordhop.io)
-
 

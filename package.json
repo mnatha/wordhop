@@ -1,6 +1,6 @@
 {
   "name": "wordhop",
-  "version": "1.3.13",
+  "version": "1.3.17",
   "description": "A toolkit for Chatbot Optimization",
   "main": "src/wordhop.js",
   "dependencies": {

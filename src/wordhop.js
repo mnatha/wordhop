@@ -72,9 +72,26 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
             }
         };
         rp(data);
+    }
 
+    that.assistanceRequested = function(message) {
+        console.log("assistanceRequested");
 
+        var data = {
+            method: 'POST',
+            url: that.serverRoot + '/assistance_requested',
+            headers: {
+                'content-type': 'application/json',
+                'apikey': that.apiKey,
+                'platform': that.platform,
+                'clientkey': that.clientkey
+            },
 
+            json: {
+                message: message
+            }
+        };
+        rp(data);
     }
 
 
@@ -298,6 +315,15 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
         that.trigger(event, [msg]);
     });
 
+    socket.on('resumed channels message', function (msg) {
+        var event = 'resumed channels message';
+        that.trigger(event, [msg]);
+    });
+
+    socket.on('live chat request message', function (msg) {
+        var event = 'live chat request message';
+        that.trigger(event, [msg]);
+    });
 
     return that;
 }
@@ -543,6 +569,7 @@ module.exports = function(apiKey, clientkey, config) {
     }
 
     wordhopObj.logUnkownIntent = wordhopbot.logUnkownIntent;
+    wordhopObj.assistanceRequested = wordhopbot.assistanceRequested;
     wordhopObj.on = wordhopbot.on;
     wordhopObj.emit = wordhopbot.emit;
     wordhopObj.getSocketId = wordhopbot.getSocketId;
