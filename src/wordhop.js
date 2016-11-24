@@ -22,15 +22,16 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
         if (message.text == null) {
             message.text = "";
         }
-        if ((message.type === 'message' || message.type == null || message.page) 
+
+        if ((message.type === 'user_message' || message.type === 'message' || message.type == null || message.page) 
             && message.channel 
             && message.user != 'USLACKBOT' 
             && message.transcript == null 
             && (message.subtype == null || message.subtype === "file_share")
-            && message.reply_to == null 
+            && message.hasOwnProperty("reply_to") == false
             && message.is_echo == null
             && message.bot_id == null
-            && (message.text.length > 1 || message.attachments != null || message.attachment != null)) {
+            && (message.text.length > 0 || message.attachments != null || message.attachment != null)) {
             return true;
         };
         return false;
@@ -54,6 +55,7 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
     that.logUnkownIntent = function(message) {
 
         console.log("logUnkownIntent");
+        console.log(message);
 
         var data = {
             method: 'POST',
@@ -95,30 +97,28 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
     }
 
 
-    that.hopIn = function(message, cb) {
+    that.hopIn = function(message, cb, isInternal) {
 
         var track = function(msg) {
 
-            that.structureMessage(message, function(res) {
-                console.log("hopIn");
-                var data = {
-                    method: 'POST',
-                    url: that.serverRoot + '/track',
-                    headers: {
-                        'content-type': 'application/json',
-                        'apikey': that.apiKey,
-                        'platform': that.platform,
-                        'clientkey': that.clientkey,
-                        'socket_id': that.getSocketId(),
-                        'type':'in'
-                    },
-                    json: {
-                        message: msg
-                    }
-                };
+            console.log("hopIn");
+            var data = {
+                method: 'POST',
+                url: that.serverRoot + '/track',
+                headers: {
+                    'content-type': 'application/json',
+                    'apikey': that.apiKey,
+                    'platform': that.platform,
+                    'clientkey': that.clientkey,
+                    'socket_id': that.getSocketId(),
+                    'type':'in'
+                },
+                json: {
+                    message: msg
+                }
+            };
 
-                rp(data);
-            });
+            rp(data);
             
         }
 
@@ -130,8 +130,15 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
                 message.paused = obj.paused;
                 message.user_profile = obj.user_profile;
             }
-            track(message);
-            if (cb) {
+            
+            that.structureMessage(message, function(res) {
+                if (cb && isInternal == null) {
+                    cb(res);
+                }  
+                track(res);
+
+            });
+            if (cb && isInternal) {
                 cb(message);
             }    
         });
@@ -289,7 +296,11 @@ function WordhopBot(apiKey, serverRoot, socketServer, controller, clientkey, tok
         if (msg.attachments) {
             message.attachments = msg.attachments;
         }
-        that.trigger(event, [msg.sourceChannel.toUpperCase(), message, msg.team]);
+        message.channel = msg.sourceChannel.toUpperCase();
+        message.type = "message";
+        message.live = true;
+        message.sourceTeam = msg.team;
+        that.trigger(event, [message]);
 
     });
 
@@ -340,13 +351,15 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
         });
     }
 
-    that.hopIn = function(obj, cb) {
+    that.hopIn = function(obj, cb, isInternal) {
 
         var callback = function(message) {
+        
             if (message.type == null) {
                 message.type = "message";
             }
-            wordhopbot.hopIn(message, cb);
+
+            wordhopbot.hopIn(message, cb, isInternal);
         }
         
         if (obj.entry) {
@@ -383,9 +396,9 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
         if (obj.message && obj.recipient) {
 
             message = {
-                text: facebook_message.message.text,
-                user: facebook_message.recipient.id,
-                channel: facebook_message.recipient.id
+                text: obj.message.text,
+                user: obj.recipient.id,
+                channel: obj.recipient.id
             };
         }
 
@@ -401,11 +414,46 @@ function WordhopBotFacebook(wordhopbot, apiKey, serverRoot, controller, debug) {
 
     that.receive = function(bot, message, next) {
         that.hopIn(message, function(msg) {
-
             next();
-        });
-            
+        }, true);
     };
+
+    that.logUnkownIntent = function(obj) {
+
+        console.log(obj);
+
+        var message = obj;
+        if (obj.message && obj.recipient) {
+
+            message = {
+                text: obj.message.text,
+                user: obj.sender.id,
+                channel: obj.sender.id
+            };
+        }
+
+        wordhopbot.logUnkownIntent(message);
+
+    }
+
+    that.assistanceRequested = function(obj) {
+
+        console.log(obj);
+
+        var message = obj;
+        if (obj.message && obj.recipient) {
+
+            message = {
+                text: obj.message.text,
+                user: obj.sender.id,
+                channel: obj.sender.id
+            };
+        }
+
+        wordhopbot.assistanceRequested(message);
+
+    }
+    
 
 }
 
@@ -449,7 +497,7 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
         if (message.event) {
             that.hopIn(message, function(msg) {
                 next();
-            }); 
+            }, true); 
         } else {
             next();
         }
@@ -527,6 +575,10 @@ function WordhopBotSlack(wordhopbot, apiKey, serverRoot, controller, debug) {
 
     that.hopIn = wordhopbot.hopIn;
     that.hopOut = wordhopbot.hopOut;
+    that.logUnkownIntent = wordhopbot.logUnkownIntent;
+    that.assistanceRequested = wordhopbot.assistanceRequested;
+    
+    
     
 
 }
@@ -568,8 +620,6 @@ module.exports = function(apiKey, clientkey, config) {
         throw new Error('platform not supported. please set it to be either "slack" or "facebook".');
     }
 
-    wordhopObj.logUnkownIntent = wordhopbot.logUnkownIntent;
-    wordhopObj.assistanceRequested = wordhopbot.assistanceRequested;
     wordhopObj.on = wordhopbot.on;
     wordhopObj.emit = wordhopbot.emit;
     wordhopObj.getSocketId = wordhopbot.getSocketId;
