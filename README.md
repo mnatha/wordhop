@@ -60,10 +60,11 @@ Wordhop can pause your bot so that it doesn't auto response while a human has ta
 if (message.paused) { return };
 ```
 
-Here is an example implementation using Botkit:
-
-
 Go back to Slack and wait for alerts. That's it!
+
+Here is an example implementation using Botkit:
+https://github.com/mnatha/wordhop/examples/messenger_bot_botkit.js
+
 
 ### 1.2 For a Messenger app NOT built with Botkit
 
@@ -135,9 +136,13 @@ if (messageText == "help" || messageText == "operator") {
 }
 ```
 
-Here's an example implementation based on https://github.com/fbsamples/messenger-platform-samples/tree/master/node
-
 Go back to Slack and wait for alerts. That's it!
+
+Here's an example implementation based on 
+`https://github.com/fbsamples/messenger-platform-samples/tree/master/node`
+https://github.com/mnatha/wordhop/examples/messenger_bot.js
+
+
 
 ## 2.0 Connect a Slack app to Wordhop
 
@@ -187,11 +192,11 @@ Wordhop can pause your bot so that it doesn't auto response while a human has ta
 if (message.paused) { return };
 ```
 
+Go back to Slack and wait for alerts. That's it!
 
 Here is an example implementation using Botkit:
+https://github.com/mnatha/wordhop/examples/slack_bot_botkit.js
 
-
-Go back to Slack and wait for alerts. That's it!
 
 ### 2.2 For a Slack app not built with Botkit
 
@@ -286,11 +291,10 @@ if (parsed.text == "help" || parsed.text == "operator") {
     sendMessage(reply);
 }
 ```
+Go back to Slack and wait for alerts. That's it!
 
 Here's an example:
-
-
-Go back to Slack and wait for alerts. That's it!
+https://github.com/mnatha/wordhop/examples/slack_bot.js
 
 =======================
 That's all for now. Questions?  Feedback?  
