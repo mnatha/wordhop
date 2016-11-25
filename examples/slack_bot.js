@@ -18,14 +18,13 @@ app.listen(3000, function(){
     startListening();
 });
 
-var token = "xoxb-108142401362-OJDMCM73DZkq5qfn5Avabecj";
 
 
 function startListening(){
 
     //call rtm.start to initiate session
     request.post({url:'https://slack.com/api/rtm.start', 
-        form: {token:token, no_unreads:'true'}}, function(err,res,body){ 
+        form: {token:process.env.token, no_unreads:'true'}}, function(err,res,body){ 
         
         if(err){
             console.log(err);
